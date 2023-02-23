@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import classes from "./Login.module.css";
 
@@ -7,6 +8,7 @@ const Login = () => {
   const emailRef = useRef();
   const passwordRef = useRef();
   const confirmPasswordRef = useRef();
+  const navigate = useNavigate();
 
   const accountHandler = () => {
     setHaveAccount((prevState) => {
@@ -14,18 +16,15 @@ const Login = () => {
     });
   };
   let url;
-
   if (haveAccount) {
     url =
-      "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyAQs7bI7d64xgfIx12vFZcTVaM1c4_k08A";
+      "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyDcbmnkOAyqsEBbVdPn90L-DOJg5qP5p68";
   } else {
     url =
-      "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyAQs7bI7d64xgfIx12vFZcTVaM1c4_k08A";
+      "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyDcbmnkOAyqsEBbVdPn90L-DOJg5qP5p68";
   }
-
   const loginFormHandler = async (e) => {
     e.preventDefault();
-
     if (!haveAccount) {
       if (passwordRef.current.value !== confirmPasswordRef.current.value) {
         return alert("password and confirm password are not same");
@@ -45,8 +44,14 @@ const Login = () => {
       });
 
       if (res.ok) {
-        // const data = await res.json();
-        console.log("User Signed Up");
+        const data = await res.json();
+        console.log("User Logged-In");
+        localStorage.setItem("idToken", data.idToken);
+        console.log(data.idToken);
+        setHaveAccount(true);
+        emailRef.current.value = "";
+        passwordRef.current.value = "";
+        navigate("/home");
       } else {
         const data = await res.json();
         throw data.error;
@@ -55,7 +60,6 @@ const Login = () => {
       alert(err.message);
     }
   };
-
   return (
     <div className={classes.mainDiv}>
       <form className={classes.form} onSubmit={loginFormHandler}>
@@ -69,12 +73,14 @@ const Login = () => {
           />
         )}
         <button type="submit">{haveAccount ? "Login" : "Sign Up"}</button>
+        {haveAccount ? <Link to="/">Forgot Password</Link> : ""}
       </form>
       <div className={classes.login} onClick={accountHandler}>
-        {haveAccount ? "Create a new account" : "Have an account? Login"}
+        {haveAccount
+          ? `Don't have an account? Sign Up`
+          : `Have an account? Sign In`}
       </div>
     </div>
   );
 };
-
 export default Login;
